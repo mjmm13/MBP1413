@@ -6,7 +6,7 @@ from PIL import Image, ImageDraw, ImageOps
 import torch
 import torchvision.transforms.functional as TF
 
-MAX_MAGNITUDE = 31
+MAX_MAGNITUDE = 100
 PYTORCH_TRANSFORMS = [(ImageOps.autocontrast, 0),
                       (ImageOps.solarize, torch.linspace(255.0, 0.0, MAX_MAGNITUDE)),
                       (ImageOps.posterize, 8 - (torch.arange(MAX_MAGNITUDE) / ((MAX_MAGNITUDE - 1) / 4)).round().int()),
@@ -132,3 +132,4 @@ class KaggleDataset(torch.utils.data.Dataset):
 
     def __len__(self):
         return len(self.folders)
+
