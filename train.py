@@ -28,29 +28,35 @@ val_dataset = KaggleDataset("/home/mmcneil/amartel_data3/mmcneil/kaggle_2018/sta
 val_dataloader = DataLoader(val_dataset, batch_size=2, shuffle=False, collate_fn=collate)
 
 for epoch in range(N_EPOCHS):
-    model.train()
     loss_totals = {"loss_classifier":0, "loss_box_reg":0, "loss_mask":0,
                    "loss_objectness":0, "loss_rpn_box_reg":0}
-    for images, labels in tqdm(val_dataloader):
+    for images, labels in tqdm(train_dataloader):
         model.train()
+        optimizer.zero_grad()
         images = list(image.to(DEVICE) for image in images)
         # move label dict to DEVICE, meanwhile check you haven't transformed labels away
         # If you have skip this batch
+        new = []
         no_label = False
-        for t in targets:
+        for t in labels:
             new_dict = {}
             for k, v in t.items():
                 if not v.shape[0]:
                     no_label = True
                     continue
                 else:
-                    new_dict[k] = v.to(device)
+                    new_dict[k] = v.to(DEVICE)
             new.append(new_dict)
         if no_label:
             continue
+        labels = new
         losses = model(images, labels)
+        loss = sum(l for l in losses.values())
+        loss.backward()
+        optimizer.step()
         loss_totals = {k: v + loss_totals[k] for k, v in losses.items()}
         
+    lr_scheduler.step()
     print(loss_total)
         
     accuracy = 0

@@ -42,30 +42,30 @@ def calc_accuracy(res, labels, thres=0.5):
         
     return accuracy, precision, recall
     
+def main():
+    model = get_model()
+    model.load_state_dict(torch.load(MODEL_PATH))
+    model = model.to(DEVICE)
+    model.eval()
 
-model = get_model()
-model.load_state_dict(torch.load(MODEL_PATH))
-model = model.to(DEVICE)
-model.eval()
+    test_dataset = KaggleDataset("/home/mmcneil/amartel_data3/mmcneil/kaggle_2018/stage2_test/", transforms=False)
+    test_dataloader = DataLoader(test_dataset, batch_size=1, shuffle=False, collate_fn=collate)
 
-test_dataset = KaggleDataset("/home/mmcneil/amartel_data3/mmcneil/kaggle_2018/stage2_test/", transforms=False)
-test_dataloader = DataLoader(test_dataset, batch_size=1, shuffle=False, collate_fn=collate)
-
-accuracy = 0
-precision = 0
-recall = 0
+    accuracy = 0
+    precision = 0
+    recall = 0
     
-with torch.no_grad():
-    for images, labels in tqdm(test_dataloader):
-        images = list(image.to(DEVICE) for image in images)
-        labels = [{k: v.to(DEVICE) for k, v in l.items()} for l in labels]
-        res = model(images)
-        del images
-        acc, pres, rec = calc_accuracy(res, labels)
+    with torch.no_grad():
+        for images, labels in tqdm(test_dataloader):
+            images = list(image.to(DEVICE) for image in images)
+            labels = [{k: v.to(DEVICE) for k, v in l.items()} for l in labels]
+            res = model(images)
+            del images
+            acc, pres, rec = calc_accuracy(res, labels)
 
-        accuracy += acc
-        precision += pres
-        recall += rec
+            accuracy += acc
+            precision += pres
+            recall += rec
 
-print("Accuracy: {:.6f}, Precision: {:.6f}, Recall: {:.6f}".format(
-       accuracy/106, precision/106, recall/106))
+    print("Accuracy: {:.6f}, Precision: {:.6f}, Recall: {:.6f}".format(
+           accuracy/106, precision/106, recall/106))
